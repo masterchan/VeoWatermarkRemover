@@ -6,10 +6,14 @@
 [![Based on GWT](https://img.shields.io/badge/Based%20on-GeminiWatermarkTool-green.svg)](https://github.com/allenk/GeminiWatermarkTool)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/allenk/GeminiWatermarkTool/blob/main/LICENSE)
 
-> **NEW: Watch the demo video on YouTube — [Veo Watermark Remover in Action](https://www.youtube.com/watch?v=adFNiWQUb54)**
->
-> **This is a demo/preview build of the upcoming Veo watermark removal feature for [GeminiWatermarkTool](https://github.com/allenk/GeminiWatermarkTool).**
-> Once stabilized, this functionality will be merged into the main GWT release with full GUI support.
+> **NEW: Watch the demo video on YouTube — [Veo Watermark Remover in Action](https://www.youtube.com/watch?v=bPDhD67C_rI)**
+
+> [!WARNING]
+> **This is a DEMO/PREVIEW build** — CLI only, unsigned executable, early testing phase.
+> See [Demo Build Notice](#demo-build-notice) for details and known limitations.
+> **Windows/macOS may block the executable on first run — see [First Run — OS Security Prompts](#first-run--os-security-prompts) below.**
+
+This is a **demo/preview build** of the upcoming Veo watermark removal feature for [GeminiWatermarkTool](https://github.com/allenk/GeminiWatermarkTool). Once stabilized, this functionality will be merged into the main GWT release with full GUI support.
 
 Remove the "Veo" text watermark from Google Veo-generated videos using **mathematically precise reverse alpha blending** — the same proven technique behind [GeminiWatermarkTool](https://github.com/allenk/GeminiWatermarkTool).
 
@@ -122,6 +126,49 @@ sha256sum GeminiWatermarkTool-Video
 
 > **If you're not comfortable running an unsigned executable, that's completely fine.**
 > This is a demo build for early testing. The Veo removal feature will be integrated into the main [GeminiWatermarkTool](https://github.com/allenk/GeminiWatermarkTool) release when ready, with full source code, CI/CD builds, and cross-platform support.
+
+## First Run — OS Security Prompts
+
+Downloaded binaries are not code-signed, so your OS may show a security warning on first launch. This is normal for open-source software distributed outside app stores.
+
+<details>
+<summary><b>Windows</b> — SmartScreen "Windows protected your PC"</summary>
+
+**Option A:** Click **More info** → **Run anyway**.
+
+**Option B (PowerShell):**
+
+```powershell
+Unblock-File .\GeminiWatermarkTool-Video.exe
+```
+
+</details>
+
+<details>
+<summary><b>macOS</b> — "Apple cannot check it for malicious software"</summary>
+
+**Option A (recommended):** Right-click the binary → **Open** → click **Open** in the dialog. You only need to do this once.
+
+**Option B (terminal):**
+
+```bash
+xattr -dr com.apple.quarantine GeminiWatermarkTool-Video
+chmod +x GeminiWatermarkTool-Video
+```
+
+</details>
+
+<details>
+<summary><b>Linux</b> — No security prompt</summary>
+
+Linux does not quarantine downloaded binaries. Just ensure the file is executable:
+
+```bash
+chmod +x GeminiWatermarkTool-Video
+./GeminiWatermarkTool-Video video.mp4
+```
+
+</details>
 
 ## Demo Build Notice
 
