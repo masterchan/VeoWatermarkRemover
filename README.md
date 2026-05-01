@@ -19,11 +19,17 @@ Remove the "Veo" text watermark from Google Veo-generated videos using **mathema
 
 No cloud services. No AI hallucination. No quality loss. Just math.
 
-## What's New
+## What's New (v0.4.0)
 
-- **Improved watermark masks** — remastered 720p and 1080p alpha maps using golden frame-differencing from multiple video sources (10+ transition pairs), significantly more accurate than the initial release
-- **Better output quality** — upgraded video encoder delivers higher fidelity output with improved compression efficiency (High profile, B-frames, multi-reference)
-- **Enhanced AI cleanup** — tuned per-resolution denoise parameters with expanded inference context, resulting in cleaner watermark removal while preserving background texture
+- **macOS stability fix** — addresses the SIGBUS crash on Apple Silicon reported in upstream GeminiWatermarkTool [#30](https://github.com/allenk/GeminiWatermarkTool/issues/30) / [#31](https://github.com/allenk/GeminiWatermarkTool/issues/31). The Vulkan loader is probed before NCNN's GPU init; if it's absent (the default on macOS without MoltenVK), AI denoise transparently falls back to CPU instead of crashing
+- **`--snap-min-size`** — finer snap-search control on the image-watermark side (default 16, range 8-64), mirroring the existing `--snap-max-size` flag
+- **End-to-end CI smoke test** — every CI build now runs `--denoise ai` through a real inference pipeline (Windows / Linux / macOS) before publishing. The previous `--version`-only check never touched the AI denoise init path, which is how the macOS crash slipped past CI in v0.3.0
+
+## Previous Release Highlights (v0.3.0)
+
+- **Improved watermark masks** — remastered 720p and 1080p alpha maps using golden frame-differencing from multiple video sources (10+ transition pairs)
+- **Better output quality** — upgraded video encoder (High profile, B-frames, multi-reference)
+- **Enhanced AI cleanup** — tuned per-resolution denoise parameters with expanded inference context
 - **Progress bar** — real-time ASCII progress indicator during video processing
 - **Quieter output** — reduced log verbosity in normal mode; use `--verbose` for detailed diagnostics
 
@@ -90,7 +96,9 @@ For the full technical background on reverse alpha blending, see:
 | GPU       | Vulkan-capable GPU for AI Denoise acceleration (or fallback to CPU) |
 | RAM       | 4 GB minimum                                                        |
 
-> **Note:** AI denoise runs on Vulkan GPU. If no Vulkan GPU is available, the tool still works using CPU.
+> **Note:** AI denoise prefers a Vulkan GPU but transparently falls back to CPU when no Vulkan loader is available.
+>
+> **macOS users:** macOS does not ship Vulkan natively — install the [LunarG Vulkan SDK](https://vulkan.lunarg.com/) (which bundles MoltenVK) for GPU acceleration. Otherwise the tool runs in CPU mode by default; this is fully supported but slower than Vulkan inference.
 
 ## Download
 
