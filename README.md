@@ -19,50 +19,83 @@ Remove the "Veo" text watermark from Google Veo-generated videos using **mathema
 
 No cloud services. No AI hallucination. No quality loss. Just math.
 
-## What's New (v0.5.0)
+## What's New (v0.6.0)
 
-- **Gemini 3.5 diamond watermark removal** — Gemini 3.5 dropped the
-  old "Veo" text overlay and now ships the Gemini diamond logo in
-  video outputs. v0.5.0 makes the diamond removal the **default**
-  mode (no flag needed). Reuses the calibrated V2 alpha map from
-  GeminiWatermarkTool v0.3.1 — the same math, same shape, scaled to
-  the video logo size.
-- **Currently 1080p only** — `1920×1080` landscape and `1080×1920`
-  portrait are calibrated and validated end-to-end against community
-  sample videos
+- **720p Gemini 3.5 diamond removal — now auto-detected.** Both
+  geometries observed in real Veo 720p outputs are calibrated and
+  shipping:
+  - **720p-1 standard** (48×48 diamond at margin 72,72) — low-bitrate
+    tier (~1.5 Mbps)
+  - **720p-2 compact** (44×44 diamond at margin 29,40) — high-bitrate
+    tier (~7 Mbps)
+
+  No more workaround of re-rendering to 1080p — just drop your 720p
+  file on the tool. Auto-detect picks the right geometry per file via
+  NCC scoring. Validated against community samples from
+  [issue #2](https://github.com/allenk/VeoWatermarkRemover/issues/2)
+  and [issue #4](https://github.com/allenk/VeoWatermarkRemover/issues/4).
+- **Dynamic per-frame alpha estimation.** The 720p watermark intensity
+  varies across encoding tiers (a single static alpha map can't cover
+  both compact and standard variants — they differ by ~3× in effective
+  strength). v0.6.0 estimates the per-frame alpha multiplier directly
+  from each frame's pixels using a median-ratio over high-reference-
+  alpha pixels, then applies it to the reverse blend. The result
+  recovers within ~5% of hand-tuned values automatically. 1080p stays
+  on the validated static path — baseline is byte-for-byte unchanged.
+- **Position refinement at video startup.** A ±4 px local NCC search
+  around the tuple anchor snaps to the actual diamond position. Costs
+  one extra correlation pass on the sample frame — negligible — and
+  absorbs minor encoding-tier position drift without recalibration.
+- **Transcoder timing fidelity** — fixes the duration / FPS drift
+  reported on previous releases. Output now matches input exactly on:
+  - **Frame count** — decoder reorder buffer is properly drained, no
+    more silently losing the last 1-3 tail frames
+  - **Duration** — output `duration_ts` matches input to the tick;
+    per-packet duration is stamped so the MP4 muxer doesn't truncate
+    the final frame
+  - **FPS metadata** — `r_frame_rate` and `avg_frame_rate` propagated
+    from input so downstream NLE / web tools see the correct numbers
+
+  If you were re-aligning v0.5.0 output against the original in a
+  video editor (per
+  [issue #4](https://github.com/allenk/VeoWatermarkRemover/issues/4)),
+  v0.6.0 should land at the same duration as the source — no
+  alignment step needed.
+- **Quieter default output** — FFmpeg container parser warnings (e.g.
+  the `Unknown cover type: 0x1` line emitted on C2PA-tagged Veo
+  videos) are suppressed at default verbosity. They still appear
+  under `--verbose` for debugging.
+- **Smarter auto-detect SKIP hint** — when a file isn't a calibrated
+  Gemini 3.5 video, the SKIP message now correctly states both 1080p
+  and 720p are supported in auto mode.
+
+### Help Wanted: Other Resolutions
+
+If you have a Gemini 3.5 video at **4K**, **square 1:1**, **9:16
+short-form**, or any resolution not in 1080p / 720p, please
+[open an issue](https://github.com/allenk/VeoWatermarkRemover/issues)
+with a sample so we can calibrate that size too. The diamond shape
+is consistent across resolutions; we mainly need the position and
+size for each new encoding profile.
+
+## Previous Release Highlights (v0.5.0)
+
+- **Gemini 3.5 diamond watermark removal (1080p)** — the first
+  release to handle Gemini 3.5's new diamond watermark by default
+  (no flag needed). 1920×1080 landscape and 1080×1920 portrait
+  validated end-to-end against community samples
   ([issue #2](https://github.com/allenk/VeoWatermarkRemover/issues/2),
   [#3](https://github.com/allenk/VeoWatermarkRemover/issues/3)).
-  Other resolutions (720p, 4K, square, ...) are **not yet calibrated**
-  — see [Help Wanted](#help-wanted-share-your-video-sizes) below.
 - **`--legacy` flag for older Veo videos** — videos generated before
-  Gemini 3.5 (with the "Veo" text watermark) need `--legacy` now;
+  Gemini 3.5 (with the "Veo" text watermark) need `--legacy`;
   the diamond and the text are different shapes at different
   positions, so applying the wrong removal would damage the frame.
-- **No fallback between profiles** — the tool will not auto-retry
-  the other mode on a clean-skip. If your diamond-mode result still
+- **No fallback between profiles** — if a diamond-mode result still
   shows the old "Veo" text, the video is pre-Gemini-3.5 — re-run
   with `--legacy`.
 - **Tighter encode** — CRF 14 / preset slow (was 18 / medium). PSNR
   improved by ~2-3 dB on encoding-only regions; visually identical
   to source on most content.
-- **Quieter video output** — per-frame AI denoise timing line moved
-  to debug level so the progress bar isn't drowned by hundreds of
-  status messages.
-
-> **This release is built on GeminiWatermarkTool v0.3.1.** The
-> diamond removal reuses GWT's V2 watermark profile (used for
-> Gemini 3.5 images) end-to-end — same alpha map, same reverse
-> blending math.
-
-### Help Wanted: Share Your Video Sizes
-
-If you have a Gemini 3.5 video at a resolution **other than 1080p**
-(720p, 4K, square 1:1, 9:16 short-form, ...) please
-[open an issue](https://github.com/allenk/VeoWatermarkRemover/issues)
-with a sample so we can calibrate that size too. The diamond shape
-appears to be identical across resolutions; only the position and
-size scale. With one or two samples per resolution we can ship
-support quickly.
 
 ## Previous Release Highlights (v0.4.0)
 
@@ -99,7 +132,7 @@ support quickly.
 ### Command Line (All Platforms)
 
 ```bash
-# Simplest — Gemini 3.5 diamond removal (default mode, 1080p only)
+# Simplest — Gemini 3.5 diamond removal (default mode, 1080p + 720p auto-detected)
 ./GeminiWatermarkTool-Video video.mp4
 
 # Pre-Gemini-3.5 video with the old "Veo" text watermark
@@ -110,6 +143,10 @@ support quickly.
 
 # Pre-3.5 with explicit input / output
 ./GeminiWatermarkTool-Video --legacy -i old_video.mp4 -o cleaned.mp4
+
+# Force a specific 720p variant if auto-detect picks wrong (rare):
+./GeminiWatermarkTool-Video --variant 720p-1 video.mp4   # 48x48 standard
+./GeminiWatermarkTool-Video --variant 720p-2 video.mp4   # 44x44 compact
 ```
 
 > **Which mode do I need?**
@@ -132,7 +169,14 @@ support quickly.
 - **Audio preserved** — original audio track is kept without re-encoding
 - **AI denoise** — GPU-accelerated FDnCNN cleanup for residual artifacts (Vulkan)
 - **Gemini 3.5 diamond removal** (default, v0.5.0+) — handles the new
-  watermark layout out of the box on 1080p landscape and portrait
+  watermark layout out of the box; v0.6.0 adds 720p (both standard
+  and compact variants) alongside the existing 1080p support
+- **Dynamic per-frame alpha estimation** (v0.6.0+, 720p) — recovers
+  the per-encoding-tier watermark intensity automatically; no manual
+  tuning required
+- **Tick-exact transcoder timing** (v0.6.0+) — frame count, duration,
+  and FPS metadata match input exactly; no drift in NLE / editor
+  alignment
 - **Legacy "Veo" text removal** (`--legacy`) — for pre-Gemini-3.5 videos;
   the previous default behaviour still available behind a single flag
 - **Progress bar** — real-time processing progress in the terminal
