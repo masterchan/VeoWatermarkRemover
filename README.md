@@ -6,6 +6,7 @@
 [![Based on GWT](https://img.shields.io/badge/Based%20on-GeminiWatermarkTool-green.svg)](https://github.com/allenk/GeminiWatermarkTool)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/allenk/GeminiWatermarkTool/blob/main/LICENSE)
 [![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/allenkoss)
+[![Support via PayPal](https://img.shields.io/badge/Support-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/allenkoss)
 
 > **NEW: Watch the demo video on YouTube — [Veo Watermark Remover in Action](https://www.youtube.com/watch?v=bPDhD67C_rI)**
 
@@ -399,7 +400,7 @@ When the Veo feature is stable, it will be merged into [GeminiWatermarkTool](htt
 
 ## Support This Project
 
-If this tool saved you time and you'd like to help keep it going, you can [support on Ko-fi](https://ko-fi.com/allenkoss). Every public release goes through GitHub Actions CI on Windows / Linux / macOS, and the binary archives live in the Releases section — small contributions help cover runner minutes and storage so the project can keep building cross-platform binaries for free. Not required, just appreciated.
+If this tool saved you time and you'd like to help keep it going, you can support via [Ko-fi](https://ko-fi.com/allenkoss) or [PayPal](https://paypal.me/allenkoss) — both go to the same place; pick whichever works for you (a few users have reported Ko-fi checkout issues from their region, so PayPal is the dependable fallback). Every public release goes through GitHub Actions CI on Windows / Linux / macOS, and the binary archives live in the Releases section — small contributions help cover runner minutes and storage so the project can keep building cross-platform binaries for free. Not required, just appreciated.
 
 Bug reports, sample videos, and pull requests remain the most valuable contributions and always will be — if you don't have anything to send via Ko-fi, opening an [issue](https://github.com/allenk/VeoWatermarkRemover/issues) with a clip the tool can't handle is just as helpful (often more so).
 
