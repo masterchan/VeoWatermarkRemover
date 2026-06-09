@@ -21,7 +21,49 @@ Remove the "Veo" text watermark from Google Veo-generated videos using **mathema
 
 No cloud services. No AI hallucination. No quality loss. Just math.
 
-## What's New (v0.6.1)
+## What's New (v0.6.2)
+
+- **Auto-detects the relocated watermark.** Newer Veo portrait outputs
+  (1080×1920, 720×1280) moved the diamond further in from the corner,
+  and v0.6.1 didn't recognise the new spot — it SKIPped those files
+  ([#14](https://github.com/allenk/VeoWatermarkRemover/issues/14),
+  [#16](https://github.com/allenk/VeoWatermarkRemover/issues/16)).
+  v0.6.2 adds the new positions AND a **smart bottom-right search** that
+  finds the diamond wherever it sits (matching its shape across several
+  frames and requiring them to agree on the position). If the position
+  shifts again, the tool locates it **without needing an update** — the
+  fixed positions are just a fast path, the search is the safety net.
+- **Fixes the "dark hole" over-removal on bright backgrounds.** When the
+  watermark drifted across a lit hand, skin, or a bright sky, the
+  per-frame estimator could over-shoot and over-subtract, leaving a dark
+  crater for a run of frames. v0.6.2 anchors each frame's intensity to
+  the stable per-shot value and rejects physically-implausible
+  estimates, so removal stays clean across the whole clip even as the
+  background changes.
+- **Keeps partially-occluded frames** ([#5](https://github.com/allenk/VeoWatermarkRemover/issues/5)).
+  When a foreground object partly covers the diamond, the watermark is
+  still there underneath — but v0.6.1 could read the low match score as
+  "no watermark" and skip those frames, leaving it visible. v0.6.2 adds
+  a three-tier confidence gate: high-confidence frames are tuned per
+  frame, low-confidence frames get the shot's consensus intensity
+  applied instead of being skipped, and only genuinely watermark-free
+  frames pass through untouched.
+- **Smarter 1080p intensity** ([#2](https://github.com/allenk/VeoWatermarkRemover/issues/2)).
+  1080p previously used a fixed intensity, but some clips need a
+  noticeably stronger one. v0.6.2 measures the correct intensity per
+  shot with a more accurate least-squares estimator (~20% closer to the
+  ideal value), while staying flicker-free on 1080p by locking one value
+  for the whole shot.
+
+> **Coming next — ML-assisted intensity.** Picking the right removal
+> intensity per clip is the single biggest quality factor. v0.6.2
+> estimates it analytically; the next release will add a small neural
+> model — trained and run entirely on your machine — that predicts the
+> optimal intensity straight from the frame, automatically handling the
+> hardest clips (dark, low-contrast, or busy backgrounds). Still fully
+> offline, no upload, deterministic reverse-alpha math at the core.
+
+## Previous Release Highlights (v0.6.1)
 
 - **Survives intro fade-ins.** Many community-supplied 720p clips
   start with a brief fade-in or splash where the watermark isn't yet
@@ -266,6 +308,17 @@ aesthetics, manual tuning helps.
 - **Gemini 3.5 diamond removal** (default, v0.5.0+) — handles the new
   watermark layout out of the box; v0.6.0 adds 720p (both standard
   and compact variants) alongside 1080p
+- **Relocated-watermark auto-detection** (v0.6.2+) — known positions
+  plus a smart bottom-right search that finds the diamond wherever it
+  moves, with cross-frame agreement to avoid false matches
+- **Over-removal protection** (v0.6.2+) — per-frame intensity is
+  anchored to the stable per-shot value, preventing the dark-hole
+  artifact when the watermark crosses bright/low-contrast areas
+- **Partial-occlusion handling** (v0.6.2+) — a three-tier confidence
+  gate cleans frames where a foreground object partly covers the
+  diamond instead of skipping them
+- **Dynamic 1080p intensity** (v0.6.2+) — least-squares per-shot
+  estimate replaces the old fixed multiplier, flicker-free
 - **Adaptive per-frame alpha refinement** (v0.6.1+, 720p) — bisection
   feedback loop applies a candidate intensity, measures the result
   against the local background, and adjusts up/down per frame; the
